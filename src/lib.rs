@@ -1,3 +1,35 @@
+//! # HashMapRs
+//!
+//! This is a simple sharded hashmap project, it provides API to add, retrieve and delete key-value pairs, , with the data
+//! being sharded across multiple nodes for scalability and performance.
+//!
+//! For the sharding, we use a consistent hashing scheme. It distributes keys more or less evenly across the available nodes.
+//! And it's relatively simple to implement and understand.
+//!  
+//! The project is structured to run a local server that clients can interact with using
+//! HTTP requests. It leverages Actix-Web as the web framework to handle routing and server
+//! management.
+//!
+//! ## Features
+//!
+//! - Add key-value pairs to the store.
+//! - Retrieve values by their keys.
+//! - Delete keys from the store.
+//! - Data sharding across configurable number of shards.
+//!
+//! ## Usage
+//!
+//! Run the server using `cargo run`, and interact with it via HTTP requests to the
+//! exposed endpoints. The server will by default run on `http://127.0.0.1:8080`.
+//!
+//! ## Endpoints
+//!
+//! - `POST /api`: Add a new key-value pair.
+//! - `GET /api/{key}`: Retrieve the value associated with the given key.
+//! - `DELETE /api/{key}`: Remove the key-value pair from the store.
+//!
+//!
+
 mod shard;
 mod shard_manager;
 
@@ -17,7 +49,15 @@ struct KeyValuePair {
     value: String,
 }
 
-// Retrieve the value associated with the key
+/// Gets a value using the provided key
+///
+/// # Arguments
+///
+/// * `key` - A string slice that holds the key.
+///
+/// # Returns
+///
+/// The value with OK code if the key exists, None with NotFound code if it doesn't
 async fn get_value(
     path: web::Path<String>,
     shard_manager: web::Data<Arc<Mutex<ShardManager>>>,
@@ -32,7 +72,17 @@ async fn get_value(
     }
 }
 
-// Add a new key-value pair
+/// Adds a key-value pair to the shard manager and returns the shard index.
+///
+/// # Arguments
+///
+/// * `key` - A string slice that holds the key.
+/// * `value` - A string slice that holds the value.
+///
+/// # Returns
+///
+/// The shard index where the key-value pair was stored.
+///
 async fn add_key_value(
     item: web::Json<KeyValuePair>,
     shard_manager: web::Data<Arc<Mutex<ShardManager>>>,
@@ -48,7 +98,15 @@ async fn add_key_value(
     )))
 }
 
-// Delete the key-value pair
+/// Delete a key from the hashmap
+///
+/// # Arguments
+///
+/// * `key` - A string slice that holds the key.
+///
+/// # Returns
+///
+/// OK code
 async fn delete_key(
     path: web::Path<String>,
     shard_manager: web::Data<Arc<Mutex<ShardManager>>>,
